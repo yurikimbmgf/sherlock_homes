@@ -12,9 +12,6 @@ library(gargle)
 library(googlesheets4)
 library(httr)
 
-
-
-
 # Prep --------------------------------------------------------------------
 # Only run this once then comment out. Needed to save the login info for Google Sheets
 # From here: https://gargle.r-lib.org/articles/non-interactive-auth.html
@@ -34,9 +31,21 @@ library(httr)
 
 # Getting Google Sheets to work -------------------------------------------
 options(
+  gargle_oob_default = TRUE, # from https://github.com/jennybc/googlesheets/issues/343#issuecomment-370202906
   gargle_oauth_cache = ".secrets",
-  gargle_oauth_email = "yurickim@gmail.com",
+  gargle_oauth_email = "ivelasq@gmail.com",
   gargle_quiet = FALSE
+)
+
+options(gargle_quiet = FALSE)
+
+gs4_auth(
+  email = gargle::gargle_oauth_email(),
+  path = NULL,
+  scopes = "https://www.googleapis.com/auth/spreadsheets",
+  cache = gargle::gargle_oauth_cache(),
+  use_oob = gargle::gargle_oob_default(),
+  token = NULL
 )
 
 # Loading stuff -----------------------------------------------------------
