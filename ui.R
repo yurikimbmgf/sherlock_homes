@@ -1,5 +1,11 @@
 library(shiny)
 
+new_full_entry_df <- reactive({
+  list(mls = as.character(),
+       attribute = character(), 
+       value = character(), 
+       class = "data.frame")
+})
 
 ui <- navbarPage("Sherlock Homes",
                  
@@ -42,7 +48,7 @@ ui <- navbarPage("Sherlock Homes",
                             column(2, div()),
                             column(8, 
                                    h3("Your Entry"),
-                                   dataTableOutput("new_full_dt"))
+                                   DT::dataTableOutput("new_full_dt"))
                           )
                  ),
                  # View Entries Tab
@@ -52,7 +58,7 @@ ui <- navbarPage("Sherlock Homes",
                                    h3("All Entries"),
                                    # Button so you can re-load the Google sheet to get the latest data.
                                    actionButton("googlesheet_reload", "Load / Reload Table"),
-                                   div(dataTableOutput("all_essential_no_action_req"))
+                                   div(DT::dataTableOutput("all_essential_no_action_req"))
                                    
                             )
                           )

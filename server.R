@@ -55,42 +55,47 @@ source("00_function.R")
 # Server ------------------------------------------------------------------
 server <- function(input, output) {
   
-  # Run mls_scrape() and then add the ratings.
-  observeEvent(input$submit_url_actionbutton, {
-    
-    new_full_entry_df <- 
+  new_full_entry_df <- reactive({
       mls_scrape(input$mls_number_textinput) %>% 
       add_row(mls = input$mls_number_textinput, attribute = "Location Rating", value = as.character(input$location_rating)) %>%
       add_row(mls = input$mls_number_textinput, attribute = "Price Rating", value = as.character(input$price_rating)) %>%
       add_row(mls = input$mls_number_textinput, attribute = "Place Rating", value = as.character(input$place_rating))
-    
-    new_essential_entry_df <- 
-      new_full_entry_df %>% 
-      essentials_function()
+  })
+  
+  new_essential_entry_df <- reactive({
+    new_full_entry_df() %>% 
+      essentials_function
+  })
+  
+  essential_googlesheet <- reactive({
+    googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1wxAF8AkZLcNl1uD05ByOmZ9ffMxTGeVHgljUtOkzgsM/edit?usp=sharing")
+  })
+  
+  # Run mls_scrape() and then add the ratings.
+  observeEvent(input$submit_url_actionbutton, {
     
     output$new_full_dt <- DT::renderDataTable({
-      new_full_entry_df
+      new_full_entry_df()
+      
   })
   })
   
   # Saving the data to google drive
   observeEvent(input$save_to_drive, {
     
-      googlesheets4::sheet_append(new_full_entry_df, ss = "https://docs.google.com/spreadsheets/d/1-3zc3pxaxipcvpydSBzPiZ_iZDismmZRMKaCuAPdYIs/edit#gid=1751745956", sheet = "entry_full_seed")
-      googlesheets4::sheet_append(new_essential_entry_df, ss = "https://docs.google.com/spreadsheets/d/1wxAF8AkZLcNl1uD05ByOmZ9ffMxTGeVHgljUtOkzgsM/edit#gid=60631602", sheet = "entry_full_essential")
+      googlesheets4::sheet_append(new_full_entry_df(), 
+                                  ss = "https://docs.google.com/spreadsheets/d/1-3zc3pxaxipcvpydSBzPiZ_iZDismmZRMKaCuAPdYIs/edit#gid=1751745956", 
+                                  sheet = "entry_full_seed")
+      googlesheets4::sheet_append(new_essential_entry_df(), ss = "https://docs.google.com/spreadsheets/d/1wxAF8AkZLcNl1uD05ByOmZ9ffMxTGeVHgljUtOkzgsM/edit#gid=60631602", sheet = "entry_full_essential")
+      
     })
   
-  # I don't really know how this works.
-  # Pushing the button to reload Google Sheet in the view mode.
-  rv <- reactiveValues()
   observeEvent(input$googlesheet_reload, {
-    rv$essential_googlesheet <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1wxAF8AkZLcNl1uD05ByOmZ9ffMxTGeVHgljUtOkzgsM/edit?usp=sharing")
+
+  output$all_essential_no_action_req <- DT::renderDataTable({
+    essential_googlesheet()
+    })
+  
   })
-  output$all_essential_no_action_req <- renderDataTable({
-    rv$essential_googlesheet
-  })
-  
-  
-  
   
 } # Server
